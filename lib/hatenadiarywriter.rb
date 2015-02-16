@@ -1,22 +1,22 @@
+require 'hatenadiarywriter/option'
+require 'hatenadiarywriter/config'
+require 'hatenadiarywriter/utils'
 require 'hatenadiary'
-require 'io/console'
-require 'stringio'
-require 'open3'
-require 'fileutils'
-require 'yaml'
 require 'logger'
-require 'optparse'
-require 'levenshtein'
+require 'fileutils'
 
 
 # Encoding.default_external = Encoding::UTF_8
 
 class HatenaDiaryWriter
+  include Utils
+
   def initialize
     @log = Logger.new($stderr)
     @log.level = Logger::INFO
     @option = Option.new
     @config = Config.new
+    @log.progname = @option.program_name
   end
 
   def run
@@ -58,30 +58,28 @@ class HatenaDiaryWriter
   end
 
   def parse_option(argv)
-    parser = OptionParser.new
-    @log.progname = parser.program_name
-    on_options parser
-    parser.parse! argv
+    @option.parse argv
+    if @option.debug
+      @log.level = Logger::DEBUG
+      @log.debug "Debug on."
+    end
+    if @option.trivial
+      @log.debug "Trivial on."
+    end
   end
 
-  MAYBE_THRESHOLD_COEFFICIENT = 3
-
   def load_config
-    @config.load File.expand_path(@option.config_file)
-  rescue InvalidConfigNamesError => e
-    e.names.each do |name|
-      maybe, score = Config.item_name_list.
-        map{|nom| [nom, Levenshtein.distance(nom, name)] }.
-        sort_by{|(_, d)| d }.first
-      # name が短すぎる場合、 score(=編集距離)も自然と低く出るので、閾値は name の長さに
-      # 緩やかに比例させる
-      if maybe && score < (name.length / MAYBE_THRESHOLD_COEFFICIENT)
-        @log.error "#{@option.config_file}: invalid config - `#{name}', maybe `#{maybe}' ?"
+    dirty = false
+    @config.load File.expand_path(@option.config_file) do |invalid|
+      dirty = true
+      maybe = guess_similar_one(invalid, Config.item_name_list)
+      if maybe
+        @log.error "#{@option.config_file}: invalid config - `#{invalid}', maybe `#{maybe}' ?"
       else
-        @log.error "#{@option.config_file}: invalid config - `#{name}'"
+        @log.error "#{@option.config_file}: invalid config - `#{invalid}'"
       end
     end
-    raise e
+    raise "no such config items" if dirty
   end
 
   private
@@ -116,29 +114,9 @@ class HatenaDiaryWriter
     @option.groupname or @config.groupname
   end
 
-  def read_input(prompt, noecho = false)
-    return nil unless $stdin.tty?
-    func = ->(f){
-      $stderr.print prompt
-      f.gets
-    }
-    if line = noecho ? $stdin.noecho(&func) : func[$stdin]
-      no_nl = not(line.chomp!)
-      $stderr.puts if noecho || no_nl
-      line
-    end
-  end
-
   def http_proxy
     return nil if @config.http_proxy
-    uri = URI.parse(@config.http_proxy)
-    uri = URI.parse("http://#{@config.http_proxy}") unless uri.scheme
-    case uri.scheme
-    when "http", "https"
-      ["#{uri.scheme}://#{uri.host}", uri.port]
-    else
-      raise ArgumentError, "invalid proxy URL: #{@config.http_proxy}"
-    end
+    parse_proxy_url @config.http_proxy
   end
 
   def cookie_file_path
@@ -210,143 +188,10 @@ class HatenaDiaryWriter
 
   def open_diary(path, &block)
     if @configs.filter_command
-      error = nil
-      Open3.popen3(@config.filter_command){|inn, out, err, th|
-        out.set_encoding @config.client_encoding
-        err.set_encoding @config.client_encoding
-        inn.write File.read(path, encoding: @config.client_encoding)
-        inn.close
-        yield(out)
-        th.join
-        error = err.read
-      }
-      @log.error "filter: error occured: #{@config.filter_command}:\n#{error}" unless error.strip.empty?
+      err = open_with_command_filter(path, @config.filter_command, @config.client_encoding, &block)
+      @log.error "filter: error occured: #{@config.filter_command}:\n#{err}" if err
     else
       File.open(path, external_encoding: @config.client_encoding, &block)
-    end
-  end
-
-  class InvalidConfigNamesError < RuntimeError
-    def initialize(names, msg)
-      super msg
-      @names = names.freeze
-    end
-
-    attr_reader :names
-  end
-
-  CONFIG_DEFAULTS = {
-    username:        nil,
-    groupname:       nil,
-    password:        nil,
-    cookie_file:     nil,
-    http_proxy:      nil,
-    client_encoding: Encoding::UTF_8,
-    server_encoding: Encoding::UTF_8,
-    filter_command:  nil,
-    diary_dir:       ".",
-    diary_glob:      "*.txt",
-    touch_file:      "touch.txt",
-  }
-
-  Config = Struct.new(*CONFIG_DEFAULTS.keys){
-    # -> Array<String>
-    def self.item_name_list
-      ITEM_NAME_LIST
-    end
-
-    def initialize
-      super
-      CONFIG_DEFAULTS.each{|k, v| self[k] = v }
-    end
-
-    KEYMAPS = {
-      'id'     => :username,
-      'g'      => :groupname,
-      'cookie' => :cookie_file,
-      'filter' => :filter_command,
-      'touch'  => :touch_file,
-    }
-
-    ITEM_NAME_LIST = CONFIG_DEFAULTS.keys.map(&:id2name) + KEYMAPS.keys
-
-    def load(path)
-      data = begin
-               YAML.load(File.read(path), path)
-             rescue Errno::ENOENT
-               return
-             end
-      data = Hash.try_convert(data) or return
-      # picks undefined config item names
-      invalids = data.each_key.select{|k|
-        begin
-          k = KEYMAPS[k] || k
-          self[k] = data[k]
-          false
-        rescue NameError
-          true
-        end
-      }
-      raise InvalidConfigNamesError.new(invalids, "No such config item") unless invalids.empty?
-    end
-  }
-
-  OPTION_DEFAULTS = {
-    debug:       false,
-    trivial:     false,
-    username:    nil,
-    password:    nil,
-    user_agent:  nil,
-    timeout:     nil,
-    groupname:   nil,
-    cookie:      false,
-    file:        nil,
-    timestamp:   true,
-    config_file: "config.yml",
-  }
-
-  Option = Struct.new(*OPTION_DEFAULTS.keys){
-    def initialize
-      super
-      OPTION_DEFAULTS.each{|k, v| self[k] = v }
-    end
-  }
-
-  def on_options(o)
-    o.on '-d', '--debug', "Turn on debug mode." do
-      @log.level = Logger::DEBUG
-      @log.debug "Debug on."
-    end
-    o.on '-t', '--trivial', "Turn on `Trivial update' mode." do
-      @option.trivial = true
-      @log.debug "Trivial on."
-    end
-    o.on '-u', '--username=ID', "Specify Hatena ID." do |id|
-      @option.username = id
-    end
-    o.on '-p', '--password=PASS', "Specify a password." do |pass|
-      @option.password = pass
-    end
-    o.on '-a', '--user-agent=NAME', "Specify user agent name to access." do |name|
-      @option.user_agent = name
-    end
-    o.on '-T', '--timeout=SEC', "Specify timeout limit seconds.", Integer do |sec|
-      @option.timeout = sec
-    end
-    o.on '-g', '--groupname=NAME', "Specify group name to post to group-diary." do |name|
-      @option.groupname = name
-    end
-    o.on '-c', '--cookie', "Use cookie to access with config value `cookie_file'." do
-      @option.cookie = true
-    end
-    o.on '-f', '--file=PATH', "Specify posting file." do |path|
-      @option.file = path
-    end
-    o.on '-M', '--no-timestamp', "Suppress substituting *t* notation." do
-      @option.timestamp = false
-    end
-    o.on '-n', '--config-file=PATH', "Specify a config file." do |path|
-      @option.config_file = path
     end
   end
 end
