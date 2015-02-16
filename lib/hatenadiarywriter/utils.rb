@@ -37,6 +37,18 @@ class HatenaDiaryWriter
       end
     end
 
+    module_function def change_file_content(path)
+      catch {|tag|
+        File.open(path, 'r+'){|f|
+          f.flock File::LOCK_EX
+          changed_content = yield(f, ->(){ throw tag })
+          f.rewind
+          f.write changed_content
+          f.truncate f.tell
+        }
+      }
+    end
+
     module_function def open_with_command_filter(path, command, encoding = Encoding.default_external)
       error = nil
       Open3.popen3(command){|inn, out, err, th|

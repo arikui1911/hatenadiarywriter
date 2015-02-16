@@ -163,18 +163,19 @@ class HatenaDiaryWriter
   end
 
   def replace_timestamp(path)
-    dirty = false
-    src = File.foreach(path).map{|line|
-      if line.start_with?('*t*')
-        dirty = true
-        "*#{Time.now.to_i}*#{line[3..-1]}"
-      else
-        line
-      end
+    change_file_content(path){|f, aborter|
+      dirty = false
+      contents = f.map{|line|
+        if line.start_with?('*t*')
+          dirty = true
+          "*#{Time.now.to_i}*#{line[3..-1]}"
+        else
+          line
+        end
+      }.join
+      throw aborter.call unless dirty
+      contents
     }
-    return unless dirty
-    FileUtils.cp(path, "#{path}~")
-    File.write(path, src.join)
   end
 
   def parse_diary(path)
