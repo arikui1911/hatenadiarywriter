@@ -5,17 +5,16 @@ require 'hatenadiarywriter/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "hatenadiarywriter"
-  spec.version       = Hatenadiarywriter::VERSION
+  spec.version       = HatenaDiaryWriter::VERSION
   spec.authors       = ["arikui1911"]
   spec.email         = ["arikui.ruby@gmail.com"]
 
-  if spec.respond_to?(:metadata)
-    spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com' to prevent pushes to rubygems.org, or delete to allow pushes to any server."
-  end
+  # if spec.respond_to?(:metadata)
+  #   spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com' to prevent pushes to rubygems.org, or delete to allow pushes to any server."
+  # end
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{`Hatena diary writer'(http://www.hyuki.com/techinfo/hatena_diary_writer.html) in Ruby.}
+  spec.homepage      = "https://github.com/arikui1911/hatenadiarywriter"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
@@ -24,4 +23,8 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.8"
   spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency "test-unit", "~> 0"
+
+  spec.add_runtime_dependency "hatenadiary", "~> 0"
+  spec.add_runtime_dependency "levenshtein", "~> 0"
 end
