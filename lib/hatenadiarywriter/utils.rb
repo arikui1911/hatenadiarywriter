@@ -1,7 +1,8 @@
 require 'io/console'
 require 'uri'
-require 'levenshtein'
 require 'open3'
+require 'levenshtein'
+
 
 class HatenaDiaryWriter
   module Utils

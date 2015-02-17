@@ -133,10 +133,12 @@ class HatenaDiaryWriter
       return [@option.file]
     end
     Dir.glob(diary_glob_pattern).map{|path|
-      if (File.file?(path) && newer?(path) &&
-          (m = File.basename(path, '.*').match(/\b(\d{4})-(\d{2})-(\d{2})\Z/)))
-        @log.debug "files: #{path}"
-        [path, *m.captures]
+      if File.file?(path) && newer?(path)
+        # path_to/yyyy-mm-dd.ext ( path_to は任意のパス、 ext は任意の拡張子) にマッチ
+        if m = File.basename(path, '.*').match(/\b(\d{4})-(\d{2})-(\d{2})\Z/)
+          @log.debug "files: #{path}"
+          [path, *m.captures]
+        end
       end
     }.compact
   end
