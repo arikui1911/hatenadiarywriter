@@ -30,6 +30,7 @@ class HatenaDiaryWriter
       'id'     => :username,
       'g'      => :groupname,
       'cookie' => :cookie_file,
+      'proxy'  => :http_proxy,
       'filter' => :filter_command,
       'touch'  => :touch_file,
     }
