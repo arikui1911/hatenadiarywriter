@@ -1,47 +1,107 @@
 * Hatenadiarywriter
 
-Welcome to your new gem! In this directory, you'll find the files you
-need to be able to package up your Ruby library into a gem. Put your
-Ruby code in the file =lib/hatenadiarywriter=. To experiment with that
-code, run =bin/console= for an interactive prompt.
+This is `Hatena diary writer'(http://www.hyuki.com/techinfo/hatena_diary_writer.html) in Ruby.
 
-TODO: Delete this and the text above, and describe your gem
 
 ** Installation
 
 Add this line to your application's Gemfile:
 
 #+BEGIN_SRC ruby
-    gem 'hatenadiarywriter'
+  gem 'hatenadiarywriter'
 #+END_SRC
 
 And then execute:
 
 #+BEGIN_EXAMPLE
-    $ bundle
+  $ bundle
 #+END_EXAMPLE
 
 Or install it yourself as:
 
 #+BEGIN_EXAMPLE
-    $ gem install hatenadiarywriter
+  $ gem install hatenadiarywriter
 #+END_EXAMPLE
+
 
 ** Usage
 
-TODO: Write usage instructions here
+Basically, please refer original Perl version's page (http://www.hyuki.com/techinfo/hatena_diary_writer.html).
+
+In the following, show differences from original version and additional points.
+
+*** Option
+
+Options got long name.
+
+#+BEGIN_EXAMPLE
+  $ rhw --help
+  Usage: rhw [options]
+      -d, --debug                      Turn on debug mode.
+      -t, --trivial                    Turn on `Trivial update' mode.
+      -u, --username=ID                Specify Hatena ID.
+      -p, --password=PASS              Specify a password.
+      -a, --user-agent=NAME            Specify user agent name to access.
+      -T, --timeout=SEC                Specify timeout limit seconds.
+      -g, --groupname=NAME             Specify group name to post to group-diary.
+      -c, --cookie                     Use cookie to access with config value `cookie_file'.
+      -f, --file=PATH                  Specify posting file.
+      -M, --no-timestamp               Suppress substituting *t* notation.
+      -n, --config-file=PATH           Specify a config file.
+#+END_EXAMPLE
+
+*** Config item
+
+Renamed:
+- txt_dir -> diary_dir :: (desc)
+
+Added:
+- diary_glob :: (desc)
+
+
+*** Config file syntax
+
+There is no difference at first glance, `colon-separated format', but actually this program parses config file
+as YAML format. Accordingly default config file is `config.yml'.
+
+For example, following YAML document is syntax error because YAML format has `alias' notation with `*'
+(parser says such as `undefined alias').
+
+#+BEGIN_SRC yaml
+  diary_dir:  ~/diary
+  diary_glob: *.txt
+#+END_SRC
+
+Correctly, like this:
+
+#+BEGIN_SRC yaml
+  diary_dir:  ~/diary
+  diary_glob: "*.txt"
+#+END_SRC
+
+Needs quotation to specify value is string!
+
+*** Cookie
+
+When original founds `cookie_file' item in config file, turns on `-c' option. But this program requires
+both of `-c' option and `cookie_file' config to use cookie.
+
+
+
+
+
+
+
+
 
 ** Development
-
-After checking out the repo, run =bin/setup= to install dependencies.
-Then, run =bin/console= for an interactive prompt that will allow you to
-experiment.
 
 To install this gem onto your local machine, run
 =bundle exec rake install=. To release a new version, update the version
 number in =version.rb=, and then run =bundle exec rake release= to
 create a git tag for the version, push git commits and tags, and push
 the =.gem= file to [[https://rubygems.org][rubygems.org]].
+
 
 ** Contributing
 
@@ -51,3 +111,5 @@ the =.gem= file to [[https://rubygems.org][rubygems.org]].
 3. Commit your changes (=git commit -am 'Add some feature'=)
 4. Push to the branch (=git push origin my-new-feature=)
 5. Create a new Pull Request
+
+
