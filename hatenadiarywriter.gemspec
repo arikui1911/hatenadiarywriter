@@ -5,7 +5,7 @@ require 'hatenadiarywriter/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "hatenadiarywriter"
-  spec.version       = HatenaDiaryWriter::VERSION
+  spec.version       = HatenaDiaryWriter.version
   spec.authors       = ["arikui1911"]
   spec.email         = ["arikui.ruby@gmail.com"]
 
