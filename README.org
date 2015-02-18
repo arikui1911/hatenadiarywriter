@@ -52,11 +52,15 @@ Options got long name.
 
 *** Config item
 
+#+BEGIN_QUOTE
 Renamed:
-- txt_dir -> diary_dir :: (desc)
+- txt_dir -> diary_dir
+#+END_QUOTE
 
+#+BEGIN_QUOTE
 Added:
-- diary_glob :: (desc)
+- diary_glob :: specify glob pattern for diary files under `diary_dir' (default: "*.txt")
+#+END_QUOTE
 
 
 *** Config file syntax
