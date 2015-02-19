@@ -109,7 +109,7 @@ class HatenaDiaryWriter
   end
 
   def password
-    @option.password or @config.password or read_input("Password: ", true)
+    @option.password or @config.password or read_input("Password: ", false)
   end
 
   def groupname

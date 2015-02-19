@@ -6,15 +6,15 @@ require 'levenshtein'
 
 class HatenaDiaryWriter
   module Utils
-    module_function def read_input(prompt, noecho = false)
+    module_function def read_input(prompt, echo_back = true)
       return nil unless $stdin.tty?
       func = ->(f){
         $stderr.print prompt
         f.gets
       }
-      if line = noecho ? $stdin.noecho(&func) : func[$stdin]
-        no_nl = not(line.chomp!)
-        $stderr.puts if noecho || no_nl
+      if line = echo_back ? func[$stdin] : $stdin.noecho(&func)
+        nl_trimmed = line.chomp!
+        $stderr.puts unless echo_back && nl_trimmed
         line
       end
     end
