@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'hatenadiarywriter/option'
 require 'hatenadiarywriter/config'
 require 'hatenadiarywriter/utils'
@@ -88,6 +89,7 @@ class HatenaDiaryWriter
     using_username, using_password = username(), password()
     raise "missing username" unless using_username
     raise "missing password" unless using_password
+    return using_username, using_password
   end
 
   def post(y, m, d, title, content)
