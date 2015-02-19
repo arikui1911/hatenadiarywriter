@@ -54,22 +54,32 @@ Options got long name.
 
 #+BEGIN_QUOTE
 Renamed:
-- txt_dir -> diary_dir
+- txt_dir -> =diary_dir=
 #+END_QUOTE
 
 #+BEGIN_QUOTE
 Added:
-- diary_glob :: specify glob pattern for diary files under `diary_dir' (default: "*.txt")
+- diary_glob :: specify glob pattern for diary files under =diary_dir= (default: "*.txt")
+#+END_QUOTE
+
+#+BEGIN_QUOTE
+Aliased:
+- username       :: alias for =id=
+- groupname      :: alias for =g=
+- cookie_file    :: alias for =cookie=
+- http_proxy     :: alias for =proxy=
+- filter_command :: alias for =filter=
+- touch_file     :: alias for =touch=
 #+END_QUOTE
 
 
 *** Config file syntax
 
-There is no difference at first glance, `colon-separated format', but actually this program parses config file
-as YAML format. Accordingly default config file is `config.yml'.
+There is no difference at first glance, "colon-separated format", but actually this program parses config file
+as *YAML format*. Accordingly default config file is /config.yml/.
 
-For example, following YAML document is syntax error because YAML format has `alias' notation with `*'
-(parser says such as `undefined alias').
+For example, following YAML document has syntax error because YAML format has "alias" notation with '*'
+(parser says such as "undefined alias.").
 
 #+BEGIN_SRC yaml
   diary_dir:  ~/diary
@@ -87,15 +97,8 @@ Needs quotation to specify value is string!
 
 *** Cookie
 
-When original founds `cookie_file' item in config file, turns on `-c' option. But this program requires
-both of `-c' option and `cookie_file' config to use cookie.
-
-
-
-
-
-
-
+When original founds =cookie_file= item in config file, turns on =-c= option. But this program requires
+*both of* =-c= option and =cookie_file= config to use cookie.
 
 
 ** Development
