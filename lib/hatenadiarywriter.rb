@@ -25,9 +25,50 @@ class HatenaDiaryWriter
     @option = Option.new
     @config = Config.new
     @log.progname = @option.program_name
+    @log.formatter = method(:format_log)
   end
 
   def run
+    process_diaries
+    FileUtils.touch touch_file unless @option.file
+  end
+
+  def parse_option(argv)
+    @option.parse argv
+    if @option.debug
+      @log.level = Logger::DEBUG
+      @log.debug "Debug on."
+    end
+    if @option.trivial
+      @log.debug "Trivial on."
+    end
+  end
+
+  def load_config
+    dirty = false
+    @config.load File.expand_path(@option.config_file) do |invalid|
+      dirty = true
+      maybe = guess_similar_one(invalid, Config.item_name_list)
+      if maybe
+        @log.error "#{@option.config_file}: invalid config - `#{invalid}', maybe `#{maybe}' ?"
+      else
+        @log.error "#{@option.config_file}: invalid config - `#{invalid}'"
+      end
+    end
+    raise "no such config items" if dirty
+  end
+
+  private
+
+  def format_log(severity, time, program_name, message)
+    if severity == "INFO"
+      "#{program_name}: #{message}\n"
+    else
+      "#{program_name}: #{severity}: #{message}\n"
+    end
+  end
+
+  def process_diaries
     list = diary_list()
     if list.empty?
       @log.info "No files are posted."
@@ -62,35 +103,7 @@ class HatenaDiaryWriter
         raise
       end
     end
-    FileUtils.touch touch_file unless @option.file
   end
-
-  def parse_option(argv)
-    @option.parse argv
-    if @option.debug
-      @log.level = Logger::DEBUG
-      @log.debug "Debug on."
-    end
-    if @option.trivial
-      @log.debug "Trivial on."
-    end
-  end
-
-  def load_config
-    dirty = false
-    @config.load File.expand_path(@option.config_file) do |invalid|
-      dirty = true
-      maybe = guess_similar_one(invalid, Config.item_name_list)
-      if maybe
-        @log.error "#{@option.config_file}: invalid config - `#{invalid}', maybe `#{maybe}' ?"
-      else
-        @log.error "#{@option.config_file}: invalid config - `#{invalid}'"
-      end
-    end
-    raise "no such config items" if dirty
-  end
-
-  private
 
   def decide_using_account
     using_username, using_password = username(), password()
