@@ -81,7 +81,7 @@ class TestHatenaDiaryWriterUtils < Test::Unit::TestCase
   end
 
   def test_guess_similar_one_too_short
-    assert_equal nil, @m.guess_similar_one("C", %w[A B D R Q])
+    assert_nil @m.guess_similar_one("C", %w[A B D R Q])
   end
 
   def with_test_filepath
@@ -116,8 +116,7 @@ Python
     }
   end
 
-  # pending
-  def _test_open_with_command_filter
+  def test_open_with_command_filter
     src = <<-EOS
 M4A1
 M1911A1
@@ -125,19 +124,19 @@ G36C
     EOS
 
     expected = <<-EOS
-01 M4A1
-02 M1911A1
-03 G36C
+001 M4A1
+002 M1911A1
+003 G36C
     EOS
 
     with_test_filepath {|path|
       File.write path, src
-      out = nil
-      err = @m.open_with_command_filter(path, %Q`ruby -ne 'printf "%02d %s", ARGF.lineno, $_'`){|f|
-        out = f.read
+      actual = nil
+      error = @m.open_with_command_filter(path, %Q`ruby -ne 'printf "%03d %s", ARGF.lineno, $_'`){|f|        # "
+        actual = f.read
       }
-      assert_equal expected, File.read(path)
-      assert_nil err
+      assert_equal expected, actual
+      assert_nil error
     }
   end
 end
