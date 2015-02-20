@@ -10,13 +10,12 @@ require 'fileutils'
 # Encoding.default_external = Encoding::UTF_8
 
 class HatenaDiaryWriter
+  class Error < RuntimeError ; end
+
   include Utils
 
   def self.run(argv)
-    app = new()
-    app.parse_option argv
-    app.load_config
-    app.run
+    new().run argv
   end
 
   def initialize
@@ -28,9 +27,14 @@ class HatenaDiaryWriter
     @log.formatter = method(:format_log)
   end
 
-  def run
+  def run(argv)
+    parse_option argv
+    load_config
     process_diaries
     FileUtils.touch touch_file unless @option.file
+  rescue Error => ex
+    raise if @option.debug
+    @log.error ex.message
   end
 
   def parse_option(argv)
