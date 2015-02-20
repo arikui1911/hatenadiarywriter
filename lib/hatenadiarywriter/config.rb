@@ -38,7 +38,8 @@ class HatenaDiaryWriter
     ITEM_NAME_LIST = CONFIG_DEFAULTS.keys.map(&:id2name) + KEYMAPS.keys
 
     def load(path, &if_invalid)
-      load_yaml(path).each do |k, v|
+      data = load_yaml(path) or return
+      data.each do |k, v|
         begin
           self[KEYMAPS[k] || k] = v
         rescue NameError
@@ -46,7 +47,7 @@ class HatenaDiaryWriter
           yield(k)
         end
       end
-      self
+      nil
     end
 
     private
