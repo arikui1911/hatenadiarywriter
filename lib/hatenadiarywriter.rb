@@ -12,6 +12,13 @@ require 'fileutils'
 class HatenaDiaryWriter
   include Utils
 
+  def self.run(argv)
+    app = new()
+    app.parse_option argv
+    app.load_config
+    app.run
+  end
+
   def initialize
     @log = Logger.new($stderr)
     @log.level = Logger::INFO
