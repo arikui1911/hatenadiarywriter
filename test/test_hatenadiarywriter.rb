@@ -14,8 +14,82 @@ module WithTestFilepath
 end
 
 class TestHatenaDiaryWriter < Test::Unit::TestCase
-  def test_version
+  test "version" do
     assert /\A\d\.\d\.\d\Z/ =~ HatenaDiaryWriter.version
+  end
+end
+
+class TestHatenaDiaryWriterOption < Test::Unit::TestCase
+  setup do
+    @option = HatenaDiaryWriter::Option.new
+  end
+
+  data do
+    set = {
+      debug:       false,
+      trivial:     false,
+      username:    nil,
+      password:    nil,
+      user_agent:  nil,
+      timeout:     nil,
+      groupname:   nil,
+      cookie:      false,
+      file:        nil,
+      timestamp:   true,
+      config_file: "config.yml",
+    }
+    set.each{|k, v| set[k] = [k, v] }
+    set
+  end
+  test "initial value" do |data|
+    key, expected = data
+    assert_equal expected, @option[key]
+  end
+
+  data do
+    set = {
+      debug:       ["--debug",            true],
+      trivial:     ["--trivial",          true],
+      username:    ["--username=NAME",    "NAME"],
+      password:    ["--password=PASS",     "PASS"],
+      user_agent:  ["--user-agent=iPhone", "iPhone"],
+      timeout:     ["--timeout=666",       666],
+      groupname:   ["--groupname=GROUP",   "GROUP"],
+      cookie:      ["--cookie",            true],
+      file:        ["--file=FILE",         "FILE"],
+      timestamp:   ["--no-timestamp",      false],
+      config_file: ["--config-file=CONF",  "CONF"],
+    }
+    set.each{|k, v| set[k] = [k, *v] }
+    set
+  end
+  test "long options" do |data|
+    key, opt, expected = data
+    @option.parse([opt])
+    assert_equal expected, @option[key]
+  end
+
+  data do
+    set = {
+      debug:       ["-d",       true],
+      trivial:     ["-t",       true],
+      username:    ["-uNAME",   "NAME"],
+      password:    ["-pPASS",   "PASS"],
+      user_agent:  ["-aiPhone", "iPhone"],
+      timeout:     ["-T666",    666],
+      groupname:   ["-gGROUP",  "GROUP"],
+      cookie:      ["-c",       true],
+      file:        ["-fFILE",   "FILE"],
+      timestamp:   ["-M",       false],
+      config_file: ["-nCONF",   "CONF"],
+    }
+    set.each{|k, v| set[k] = [k, *v] }
+    set
+  end
+  test "short options" do |data|
+    key, opt, expected = data
+    @option.parse([opt])
+    assert_equal expected, @option[key]
   end
 end
 
