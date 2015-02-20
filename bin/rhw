@@ -1,8 +1,4 @@
 #!/usr/bin/env ruby
 require 'hatenadiarywriter'
-
-app = HatenaDiaryWriter.new
-app.parse_option ARGV
-app.load_config
-app.run
+HatenaDiaryWriter.run ARGV
 
