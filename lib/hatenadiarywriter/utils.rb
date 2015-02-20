@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'io/console'
 require 'uri'
 require 'open3'
@@ -6,7 +7,9 @@ require 'levenshtein'
 
 class HatenaDiaryWriter
   module Utils
-    module_function def read_input(prompt, echo_back = true)
+    module_function
+
+    def read_input(prompt, echo_back = true)
       return nil unless $stdin.tty?
       func = ->(f){
         $stderr.print prompt
@@ -19,7 +22,7 @@ class HatenaDiaryWriter
       end
     end
 
-    module_function def parse_proxy_url(src)
+    def parse_proxy_url(src)
       uri = URI.parse(src)
       uri = URI.parse("http://#{src}") if !uri.scheme || uri.instance_of?(URI::Generic)
       uri.normalize!
@@ -31,7 +34,7 @@ class HatenaDiaryWriter
       end
     end
 
-    module_function def guess_similar_one(src, nominates, threshold_coefficient: 3)
+    def guess_similar_one(src, nominates, threshold_coefficient: 3)
       maybe, score = nominates.map{|nom| [nom, Levenshtein.distance(nom, src)] }.sort_by(&:last).first
       # src が短すぎる場合、 score(=編集距離)も自然と低く出るので、閾値は src の長さに緩やかに比例させる
       if maybe && score <= (src.length / threshold_coefficient)
@@ -39,7 +42,7 @@ class HatenaDiaryWriter
       end
     end
 
-    module_function def change_file_content(path)
+    def change_file_content(path)
       catch {|tag|
         File.open(path, 'r+'){|f|
           f.flock File::LOCK_EX
@@ -51,7 +54,7 @@ class HatenaDiaryWriter
       }
     end
 
-    module_function def open_with_command_filter(path, command, encoding = Encoding.default_external)
+    def open_with_command_filter(path, command, encoding = Encoding.default_external)
       error = nil
       Open3.popen3(command){|inn, out, err, th|
         out.set_encoding encoding
