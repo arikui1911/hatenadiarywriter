@@ -85,6 +85,7 @@ class HatenaDiaryWriter
                         groupname:        groupname,
                         read_timeout_sec: @option.timeout,
                         user_agent_alias: @option.user_agent,
+                        http_proxy:       http_proxy(),
                         cookie_file_path: current_cookie_file,
                         hatena_encoding:  @config.server_encoding){|client|
         list.each do |path, y, m, d|
