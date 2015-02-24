@@ -92,9 +92,9 @@ class HatenaDiaryWriter
           replace_timestamp(path) if @option.timestamp
           title, content = parse_diary(path)
           if delete_declared?(title)
-            delete y, m, d
+            delete client, y, m, d
           else
-            post y, m, d, title, content
+            post client, y, m, d, title, content
           end
           sleep 1
         end
@@ -117,13 +117,13 @@ class HatenaDiaryWriter
     return using_username, using_password
   end
 
-  def post(y, m, d, title, content)
+  def post(client, y, m, d, title, content)
     @log.info "Posting #{y}-#{m}-#{d}..."
     client.post y, m, d, title, content, trivial: @option.trivial
     @log.info "Post #{y}-#{m}-#{d}."
   end
 
-  def delete(y, m, d)
+  def delete(client, y, m, d)
     @log.info "Deleting #{y}-#{m}-#{d}..."
     client.delete y, m, d
     @log.info "Delete #{y}-#{m}-#{d}."
@@ -142,7 +142,7 @@ class HatenaDiaryWriter
   end
 
   def http_proxy
-    return nil if @config.http_proxy
+    return nil unless @config.http_proxy
     parse_proxy_url @config.http_proxy
   end
 
@@ -217,7 +217,7 @@ class HatenaDiaryWriter
   end
 
   def open_diary(path, &block)
-    if @configs.filter_command
+    if @config.filter_command
       err = open_with_command_filter(path, @config.filter_command, @config.client_encoding, &block)
       @log.error "filter: error occured: #{@config.filter_command}:\n#{err}" if err
     else
