@@ -6,9 +6,6 @@ require 'hatenadiary'
 require 'logger'
 require 'fileutils'
 
-
-# Encoding.default_external = Encoding::UTF_8
-
 class HatenaDiaryWriter
   class Error < RuntimeError ; end
 
